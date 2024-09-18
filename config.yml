@@ -1,0 +1,47 @@
+---
+- hosts: all
+  become: true
+  vars:
+    mysql_root_password: velasco
+  tasks:
+
+  - name: Install Latest Python3
+    apt:
+      name: python3
+      state: latest
+
+  - name: Install Pip3
+    apt:
+      name: python3-pip
+
+  - name: Use Latest Version of Pip
+    lineinfile:
+      dest: "~/.bashrc"
+      line: |
+        python=python3
+        pip=pip3
+
+  - name: Install Java OpenJDK
+    apt:
+      name: openjdk-21-jdk
+      state: present
+
+  - name: Install MariaDB
+    apt:
+      name: mariadb
+      name: mariadb-server
+      name: mariadb-client
+      state: latest
+
+  - name: Start MariaDB
+    service: name=mariadb state=started enabled=true
+
+  - name: Create Database
+    mysql_db: name=sampledb state=present login_user=root login_password="{{ velasco }}"
+
+  - name: Add Data to Database
+    copy: src=dump.sql dest=/tmp/dump.sql
+
+  - name: Insert Data to Database
+    mysql_db: name=sampledb state=import target=/tmp/dump.sql login_user=root login_password="{{ velasco }}"
+
